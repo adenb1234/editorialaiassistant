@@ -41,13 +41,15 @@ def convert_urls_to_hyperlinks(text):
     def replace_source_url(match):
         source_text = match.group(1)
         url = match.group(2)
-        return f'[{source_text}]({url})'
+        return f'{source_text} [Article Link.]({url})'
 
-    # Replace "Source:" followed by URL, even if they're not immediately adjacent
-    text = re.sub(r'(Source:.*?)\s*(https?://\S+)', replace_source_url, text, flags=re.DOTALL)
+    # Replace "Source:" followed by URL, changing it to "Article Link" with a period
+    text = re.sub(r'(.*?Source:)\s*(https?://\S+)', replace_source_url, text, flags=re.DOTALL)
+    
+    # Remove any remaining "Source:" without a URL
+    text = text.replace('Source:', '[Article Link.]')
     
     return text
-
 # The rest of your code remains the same
 
 # Load editorials
