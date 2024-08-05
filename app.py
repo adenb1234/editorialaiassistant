@@ -41,13 +41,13 @@ def convert_urls_to_hyperlinks(text):
     def replace_source_url(match):
         source_text = match.group(1)
         url = match.group(2)
-        return f'{source_text} [Article Link.]({url})'
+        return f'[Article Link]({url})'
 
-    # Replace "Source:" followed by URL, changing it to "Article Link" with a period
+    # Replace "Source:" followed by URL, changing it to a single "Article Link" hyperlink
     text = re.sub(r'(.*?Source:)\s*(https?://\S+)', replace_source_url, text, flags=re.DOTALL)
     
     # Remove any remaining "Source:" without a URL
-    text = text.replace('Source:', '[Article Link.]')
+    text = re.sub(r'\bSource:\s*', '', text)
     
     return text
 # The rest of your code remains the same
