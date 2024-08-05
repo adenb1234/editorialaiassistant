@@ -8,7 +8,7 @@ client = anthropic.Client(api_key=st.secrets["ANTHROPIC_API_KEY"])
 
 # Function to load editorials from GitHub
 def load_editorials_from_github():
-    github_raw_url = "https://raw.githubusercontent.com/yourusername/yourrepository/main/editorials.json"
+    github_raw_url = "https://raw.githubusercontent.com/adenb1234/editorialaiassistant/main/editorials.json"
     try:
         response = requests.get(github_raw_url)
         response.raise_for_status()  # Raises an HTTPError for bad responses
