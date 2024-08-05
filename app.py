@@ -44,7 +44,7 @@ logo_url = "https://raw.githubusercontent.com/adenb1234/editorialaiassistant/mai
 logo = Image.open(requests.get(logo_url, stream=True).raw)
 st.image(logo, width=300)
 
-st.title("Washington Post Editorial AI Assistant")
+st.title("Editorial Board AI Assistant")
 
 # Custom CSS for better aesthetics
 st.markdown("""
