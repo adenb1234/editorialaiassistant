@@ -1,31 +1,36 @@
 import streamlit as st
 import anthropic
 import json
+import requests
 
 # Initialize the Anthropic client
 client = anthropic.Client(api_key=st.secrets["ANTHROPIC_API_KEY"])
 
-# Load your editorials
-def load_editorials():
+# Function to load editorials from GitHub
+def load_editorials_from_github():
+    github_raw_url = "https://raw.githubusercontent.com/yourusername/yourrepository/main/editorials.json"
     try:
-        with open('/path/to/your/editorials.json', 'r') as f:
-            return json.load(f)
+        response = requests.get(github_raw_url)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        return json.loads(response.text)
     except Exception as e:
-        st.error(f"Error loading editorials: {e}")
+        st.error(f"Error loading editorials from GitHub: {e}")
         return []
 
-editorials = load_editorials()
+# Load editorials
+editorials = load_editorials_from_github()
 
 st.title("Washington Post Editorial Board AI Bot")
 
 if not editorials:
     st.warning("No editorials loaded. Please check your data source.")
 else:
+    st.write(f"Loaded {len(editorials)} editorials.")
     user_question = st.text_input("Ask a question about Washington Post editorials:")
 
     if user_question:
-        # Prepare the context (you might want to limit this to relevant editorials)
-        context = "\n\n".join([f"Title: {ed['title']}\nContent: {ed['full_text']}" for ed in editorials[:5]])
+        # Prepare the context (using all available editorials)
+        context = "\n\n".join([f"Title: {ed['title']}\nContent: {ed['full_text']}" for ed in editorials[:5]])  # Limiting to first 5 for brevity
 
         # Prepare the message for Claude
         message = f"Context:\n{context}\n\nQuestion: {user_question}\n\nPlease answer the question based on the provided editorial content."
