@@ -67,14 +67,7 @@ if user_question:
         else:
             st.write("No content in the response.")
         
-        # Debug information
-        st.write("Debug Information:")
-        st.write("Response type:", type(response))
-        st.write("Content type:", type(response.content))
-        
     except Exception as e:
         st.error(f"Error processing AI response: {str(e)}")
-        st.error(f"Response type: {type(response)}")
-        st.error(f"Response content: {response.content if 'response' in locals() else 'N/A'}")
-    
+        
 st.sidebar.write("This AI bot is based on Washington Post editorials and powered by Claude AI.")
