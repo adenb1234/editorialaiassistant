@@ -62,7 +62,7 @@ if user_question:
         
         if response.content:
             for content in response.content:
-                if isinstance(content, anthropic.types.ContentBlock) and content.type == 'text':
+                if hasattr(content, 'text'):
                     st.write(content.text)
         else:
             st.write("No content in the response.")
@@ -76,5 +76,5 @@ if user_question:
         st.error(f"Error processing AI response: {str(e)}")
         st.error(f"Response type: {type(response)}")
         st.error(f"Response content: {response.content if 'response' in locals() else 'N/A'}")
-
+    
 st.sidebar.write("This AI bot is based on Washington Post editorials and powered by Claude AI.")
