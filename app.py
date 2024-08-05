@@ -62,23 +62,21 @@ if user_question:
         )
         st.write("AI Response:")
         
-        # Parse the response content
-        parsed_content = ast.literal_eval(response.content)
-        if parsed_content and isinstance(parsed_content, list) and parsed_content[0]:
-            # Extract the text from the TextBlock
-            text_block = parsed_content[0]
-            if isinstance(text_block, str) and text_block.startswith("TextBlock"):
-                # Extract the text content from the TextBlock string
-                text_content = re.search(r'text="(.*?)"', text_block, re.DOTALL)
-                if text_content:
-                    st.write(text_content.group(1))
-                else:
-                    st.write("Unable to extract text content from the response.")
+        # Extract the text content from the response
+        content = response.content
+        if isinstance(content, list) and content and hasattr(content[0], 'text'):
+            st.write(content[0].text)
+        elif isinstance(content, str):
+            # If it's a string, it might be a representation of a TextBlock
+            match = re.search(r'text="(.*?)"', content, re.DOTALL)
+            if match:
+                st.write(match.group(1))
             else:
-                st.write(text_block)
+                st.write(content)
         else:
             st.write("Unexpected response format.")
     except Exception as e:
         st.error(f"Error processing AI response: {e}")
+
 
 st.sidebar.write("This AI bot is based on Washington Post editorials and powered by Claude AI.")
