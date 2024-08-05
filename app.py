@@ -2,9 +2,7 @@ import streamlit as st
 import anthropic
 import json
 import requests
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
+import re
 
 # Initialize the Anthropic client
 client = anthropic.Client(api_key=st.secrets["ANTHROPIC_API_KEY"])
@@ -23,26 +21,18 @@ def load_editorials_from_github():
 
 editorials = load_editorials_from_github()
 
-# Initialize sentence transformer model
-@st.cache_resource
-def load_model():
-    return SentenceTransformer('all-MiniLM-L6-v2')
-
-model = load_model()
-
-# Create embeddings for all editorials (only once)
-@st.cache_data
-def create_embeddings(editorials):
-    return model.encode([ed['title'] + " " + ed['full_text'] for ed in editorials])
-
-editorial_embeddings = create_embeddings(editorials)
-
 # Function to find most relevant editorials
 def find_relevant_editorials(query, top_k=5):
-    query_embedding = model.encode([query])
-    similarities = cosine_similarity(query_embedding, editorial_embeddings)[0]
-    top_indices = np.argsort(similarities)[-top_k:][::-1]
-    return [editorials[i] for i in top_indices]
+    query_words = set(re.findall(r'\w+', query.lower()))
+    scores = []
+    for i, ed in enumerate(editorials):
+        text = ed['title'] + " " + ed['full_text']
+        text_words = set(re.findall(r'\w+', text.lower()))
+        score = len(query_words.intersection(text_words))
+        scores.append((score, i))
+    
+    scores.sort(reverse=True)
+    return [editorials[i] for _, i in scores[:top_k]]
 
 st.title("Washington Post Editorial Board AI Bot")
 
