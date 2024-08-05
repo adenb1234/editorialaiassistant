@@ -38,24 +38,22 @@ def find_relevant_editorials(query, top_k=7):
 
 # Function to convert URLs to hyperlinks
 def convert_urls_to_hyperlinks(text):
-    url_pattern = r'(Source:?\s*)?(\()?https?://\S+(\))?'
+    # Split the text into sentences
+    sentences = re.split(r'(?<=[.!?])\s+', text)
     
-    def replace_url(match):
-        full_match = match.group(0)
-        url = re.search(r'(https?://\S+)', full_match).group(1)
-        
-        # Find the preceding text, removing trailing periods
-        preceding_text = text[:match.start()].strip().rstrip('.')
-        preceding_words = preceding_text.split()[-5:]
-        link_text = ' '.join(preceding_words) if preceding_words else url
-        
-        # Check if there's a period after the URL and include it if present
-        following_period = '.' if text[match.end():].startswith('.') else ''
-        
-        return f'[{link_text}]({url}){following_period}'
+    for i, sentence in enumerate(sentences):
+        # Find URLs in the sentence
+        url_match = re.search(r'(https?://\S+)', sentence)
+        if url_match:
+            url = url_match.group(1)
+            # Remove the URL from the sentence
+            sentence_without_url = sentence.replace(url, '').strip()
+            # Create a hyperlink with the sentence text
+            sentences[i] = f'[{sentence_without_url}]({url})'
     
-    return re.sub(url_pattern, replace_url, text)
-    
+    # Join the sentences back together
+    return ' '.join(sentences)
+
 # Load editorials
 editorials = load_editorials_from_github()
 
@@ -91,7 +89,7 @@ if user_question:
     context = "\n\n".join([f"Title: {ed['title']}\nContent: {ed['full_text']}\nURL: {ed['url']}" for ed in relevant_editorials])
     
     prompt = f"""You are a helpful assistant that provides information about editorials from the Washington Post. 
-    Be concise and use bullet points whenever possible. Whenever you reference an editorial, provide the full URL for it, prefaced with 'Source:'.
+    Be concise and use bullet points whenever possible. Whenever you reference an editorial, provide the full URL for it at the end of the sentence.
 
     Context:\n{context}\n\nQuestion: {user_question}\n\nPlease answer the question based on the provided editorial content, including source URLs for each point."""
     
