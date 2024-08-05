@@ -38,15 +38,16 @@ def find_relevant_editorials(query, top_k=7):
 
 # Function to convert URLs to hyperlinks
 def convert_urls_to_hyperlinks(text):
-    url_pattern = r'(https?://\S+)'
+    url_pattern = r'(Source:?\s*)?(\()?https?://\S+(\))?'
     
     def replace_url(match):
-        url = match.group(1)
-        # Find the preceding words (up to 5) to use as link text
-        preceding_words = re.findall(r'\S+\s*', text[:match.start()])[-5:]
-        link_text = ' '.join(preceding_words).strip()
-        if not link_text:
-            link_text = url
+        full_match = match.group(0)
+        url = re.search(r'(https?://\S+)', full_match).group(1)
+        
+        preceding_text = text[:match.start()].strip()
+        preceding_words = preceding_text.split()[-5:]
+        link_text = ' '.join(preceding_words) if preceding_words else url
+        
         return f'[{link_text}]({url})'
     
     return re.sub(url_pattern, replace_url, text)
@@ -86,9 +87,9 @@ if user_question:
     context = "\n\n".join([f"Title: {ed['title']}\nContent: {ed['full_text']}\nURL: {ed['url']}" for ed in relevant_editorials])
     
     prompt = f"""You are a helpful assistant that provides information about editorials from the Washington Post. 
-    Be concise and use bullet points whenever possible. Whenever you reference an editorial, provide the link for it.
+    Be concise and use bullet points whenever possible. Whenever you reference an editorial, provide the full URL for it, prefaced with 'Source:'.
 
-    Context:\n{context}\n\nQuestion: {user_question}\n\nPlease answer the question based on the provided editorial content."""
+    Context:\n{context}\n\nQuestion: {user_question}\n\nPlease answer the question based on the provided editorial content, including source URLs for each point."""
     
     try:
         response = client.messages.create(
