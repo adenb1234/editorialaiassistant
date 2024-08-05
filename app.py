@@ -44,14 +44,18 @@ def convert_urls_to_hyperlinks(text):
         full_match = match.group(0)
         url = re.search(r'(https?://\S+)', full_match).group(1)
         
-        preceding_text = text[:match.start()].strip()
+        # Find the preceding text, removing trailing periods
+        preceding_text = text[:match.start()].strip().rstrip('.')
         preceding_words = preceding_text.split()[-5:]
         link_text = ' '.join(preceding_words) if preceding_words else url
         
-        return f'[{link_text}]({url})'
+        # Check if there's a period after the URL and include it if present
+        following_period = '.' if text[match.end():].startswith('.') else ''
+        
+        return f'[{link_text}]({url}){following_period}'
     
     return re.sub(url_pattern, replace_url, text)
-
+    
 # Load editorials
 editorials = load_editorials_from_github()
 
