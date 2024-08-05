@@ -5,6 +5,9 @@ import requests
 import re
 from PIL import Image
 
+# Set page config at the very beginning
+st.set_page_config(page_title="Washington Post Editorial AI", layout="wide")
+
 # Initialize the Anthropic client
 client = anthropic.Client(api_key=st.secrets["ANTHROPIC_API_KEY"])
 
@@ -35,9 +38,6 @@ def find_relevant_editorials(query, top_k=7):
 
 # Load editorials
 editorials = load_editorials_from_github()
-
-# Streamlit app
-st.set_page_config(page_title="Washington Post Editorial AI", layout="wide")
 
 # Load and display Washington Post logo
 logo_url = "https://raw.githubusercontent.com/adenb1234/editorialaiassistant/main/wapo_logo.png"
