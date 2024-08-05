@@ -3,7 +3,6 @@ import anthropic
 import json
 import requests
 import re
-import ast
 
 # Initialize the Anthropic client
 client = anthropic.Client(api_key=st.secrets["ANTHROPIC_API_KEY"])
@@ -64,19 +63,13 @@ if user_question:
         
         # Extract the text content from the response
         content = response.content
-        if isinstance(content, list) and content and hasattr(content[0], 'text'):
-            st.write(content[0].text)
-        elif isinstance(content, str):
-            # If it's a string, it might be a representation of a TextBlock
-            match = re.search(r'text="(.*?)"', content, re.DOTALL)
-            if match:
-                st.write(match.group(1))
-            else:
-                st.write(content)
+        match = re.search(r'text="(.*?)"', content, re.DOTALL)
+        if match:
+            st.write(match.group(1))
         else:
-            st.write("Unexpected response format.")
+            st.write("Unable to extract text from the response. Here's the raw response:")
+            st.write(content)
     except Exception as e:
         st.error(f"Error processing AI response: {e}")
-
 
 st.sidebar.write("This AI bot is based on Washington Post editorials and powered by Claude AI.")
