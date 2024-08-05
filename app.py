@@ -3,6 +3,7 @@ import anthropic
 import json
 import requests
 import re
+from PIL import Image
 
 # Initialize the Anthropic client
 client = anthropic.Client(api_key=st.secrets["ANTHROPIC_API_KEY"])
@@ -20,7 +21,7 @@ def load_editorials_from_github():
         return []
 
 # Function to find most relevant editorials
-def find_relevant_editorials(query, top_k=5):
+def find_relevant_editorials(query, top_k=7):
     query_words = set(re.findall(r'\w+', query.lower()))
     scores = []
     for i, ed in enumerate(editorials):
@@ -36,8 +37,30 @@ def find_relevant_editorials(query, top_k=5):
 editorials = load_editorials_from_github()
 
 # Streamlit app
-st.title("Washington Post Editorial Board AI Bot")
-st.write(f"Loaded {len(editorials)} editorials.")
+st.set_page_config(page_title="Washington Post Editorial AI", layout="wide")
+
+# Load and display Washington Post logo
+logo_url = "https://raw.githubusercontent.com/adenb1234/editorialaiassistant/main/wapo_logo.png"
+logo = Image.open(requests.get(logo_url, stream=True).raw)
+st.image(logo, width=300)
+
+st.title("Washington Post Editorial AI Assistant")
+
+# Custom CSS for better aesthetics
+st.markdown("""
+    <style>
+    .stTextInput > div > div > input {
+        background-color: #f0f0f0;
+    }
+    .stButton > button {
+        background-color: #1a1a1a;
+        color: white;
+    }
+    .stMarkdown {
+        font-family: 'Georgia', serif;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 # User input
 user_question = st.text_input("Ask a question about Washington Post editorials:")
@@ -45,8 +68,12 @@ user_question = st.text_input("Ask a question about Washington Post editorials:"
 # Process user input
 if user_question:
     relevant_editorials = find_relevant_editorials(user_question)
-    context = "\n\n".join([f"Title: {ed['title']}\nContent: {ed['full_text']}" for ed in relevant_editorials])
-    message = f"Context:\n{context}\n\nQuestion: {user_question}\n\nPlease answer the question based on the provided editorial content."
+    context = "\n\n".join([f"Title: {ed['title']}\nContent: {ed['full_text']}\nURL: {ed['url']}" for ed in relevant_editorials])
+    
+    prompt = f"""You are a helpful assistant that provides information about editorials from the Washington Post. 
+    Be concise and use bullet points whenever possible. Whenever you reference an editorial, provide the link for it.
+
+    Context:\n{context}\n\nQuestion: {user_question}\n\nPlease answer the question based on the provided editorial content."""
     
     try:
         response = client.messages.create(
@@ -54,20 +81,21 @@ if user_question:
             max_tokens=1000,
             temperature=0.5,
             messages=[
-                {"role": "user", "content": message}
+                {"role": "user", "content": prompt}
             ]
         )
         
-        st.write("AI Response:")
+        st.subheader("AI Response:")
         
         if response.content:
             for content in response.content:
                 if hasattr(content, 'text'):
-                    st.write(content.text)
+                    st.markdown(content.text)
         else:
             st.write("No content in the response.")
         
     except Exception as e:
         st.error(f"Error processing AI response: {str(e)}")
-        
-st.sidebar.write("This AI bot is based on Washington Post editorials and powered by Claude AI.")
+
+st.sidebar.markdown("### About")
+st.sidebar.write("This AI assistant is based on Washington Post editorials and powered by Claude AI.")
