@@ -37,7 +37,6 @@ editorials = load_editorials_from_github()
 
 # Streamlit app
 st.title("Washington Post Editorial Board AI Bot")
-
 st.write(f"Loaded {len(editorials)} editorials.")
 
 # User input
@@ -47,9 +46,8 @@ user_question = st.text_input("Ask a question about Washington Post editorials:"
 if user_question:
     relevant_editorials = find_relevant_editorials(user_question)
     context = "\n\n".join([f"Title: {ed['title']}\nContent: {ed['full_text']}" for ed in relevant_editorials])
-
     message = f"Context:\n{context}\n\nQuestion: {user_question}\n\nPlease answer the question based on the provided editorial content."
-
+    
     try:
         response = client.messages.create(
             model="claude-3-opus-20240229",
@@ -59,17 +57,24 @@ if user_question:
                 {"role": "user", "content": message}
             ]
         )
+        
         st.write("AI Response:")
         
-        # Extract the text content from the response
-        content = response.content
-        match = re.search(r'text="(.*?)"', content, re.DOTALL)
-        if match:
-            st.write(match.group(1))
+        if response.content:
+            for content in response.content:
+                if isinstance(content, anthropic.types.ContentBlock) and content.type == 'text':
+                    st.write(content.text)
         else:
-            st.write("Unable to extract text from the response. Here's the raw response:")
-            st.write(content)
+            st.write("No content in the response.")
+        
+        # Debug information
+        st.write("Debug Information:")
+        st.write("Response type:", type(response))
+        st.write("Content type:", type(response.content))
+        
     except Exception as e:
-        st.error(f"Error processing AI response: {e}")
+        st.error(f"Error processing AI response: {str(e)}")
+        st.error(f"Response type: {type(response)}")
+        st.error(f"Response content: {response.content if 'response' in locals() else 'N/A'}")
 
 st.sidebar.write("This AI bot is based on Washington Post editorials and powered by Claude AI.")
