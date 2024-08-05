@@ -38,21 +38,17 @@ def find_relevant_editorials(query, top_k=7):
 
 # Function to convert URLs to hyperlinks
 def convert_urls_to_hyperlinks(text):
-    def replace_url(match):
-        full_url = match.group(0)
-        url = full_url.strip('()[]')
-        preceding_text = text[:match.start()].rsplit('.', 1)[-1].strip()
-        if preceding_text.lower().startswith('source:'):
-            preceding_text = preceding_text[7:].strip()
-        return f'[{preceding_text}]({url})'
+    def replace_source_url(match):
+        source_text = match.group(1)
+        url = match.group(2)
+        return f'[{source_text}]({url})'
 
-    # Replace URLs that are enclosed in parentheses or square brackets
-    text = re.sub(r'\(https?://[^\s\)]+\)|\[https?://[^\s\]]+\]', replace_url, text)
-    
-    # Replace any remaining URLs
-    text = re.sub(r'https?://[^\s]+', replace_url, text)
+    # Replace "Source:" followed by URL, even if they're not immediately adjacent
+    text = re.sub(r'(Source:.*?)\s*(https?://\S+)', replace_source_url, text, flags=re.DOTALL)
     
     return text
+
+# The rest of your code remains the same
 
 # Load editorials
 editorials = load_editorials_from_github()
