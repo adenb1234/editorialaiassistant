@@ -39,12 +39,12 @@ def find_relevant_editorials(query, top_k=7):
 # Function to convert URLs to hyperlinks
 def convert_urls_to_hyperlinks(text):
     def replace_source_url(match):
-        source_text = match.group(1)
+        before_source = match.group(1)
         url = match.group(2)
-        return f'[Article Link]({url})'
+        return f'{before_source} [Article Link]({url})'
 
-    # Replace "Source:" followed by URL, changing it to a single "Article Link" hyperlink
-    text = re.sub(r'(.*?Source:)\s*(https?://\S+)', replace_source_url, text, flags=re.DOTALL)
+    # Replace "Source:" followed by URL, changing it to "Article Link" hyperlink
+    text = re.sub(r'(.*?)Source:\s*(https?://\S+)', replace_source_url, text, flags=re.DOTALL)
     
     # Remove any remaining "Source:" without a URL
     text = re.sub(r'\bSource:\s*', '', text)
