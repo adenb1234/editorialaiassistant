@@ -36,6 +36,21 @@ def find_relevant_editorials(query, top_k=7):
     scores.sort(reverse=True)
     return [editorials[i] for _, i in scores[:top_k]]
 
+# Function to convert URLs to hyperlinks
+def convert_urls_to_hyperlinks(text):
+    url_pattern = r'(https?://\S+)'
+    
+    def replace_url(match):
+        url = match.group(1)
+        # Find the preceding words (up to 5) to use as link text
+        preceding_words = re.findall(r'\S+\s*', text[:match.start()])[-5:]
+        link_text = ' '.join(preceding_words).strip()
+        if not link_text:
+            link_text = url
+        return f'[{link_text}]({url})'
+    
+    return re.sub(url_pattern, replace_url, text)
+
 # Load editorials
 editorials = load_editorials_from_github()
 
@@ -44,7 +59,7 @@ logo_url = "https://raw.githubusercontent.com/adenb1234/editorialaiassistant/mai
 logo = Image.open(requests.get(logo_url, stream=True).raw)
 st.image(logo, width=300)
 
-st.title("Editorial Board AI Assistant")
+st.title("Washington Post Editorial AI Assistant")
 
 # Custom CSS for better aesthetics
 st.markdown("""
@@ -90,7 +105,8 @@ if user_question:
         if response.content:
             for content in response.content:
                 if hasattr(content, 'text'):
-                    st.markdown(content.text)
+                    hyperlinked_text = convert_urls_to_hyperlinks(content.text)
+                    st.markdown(hyperlinked_text)
         else:
             st.write("No content in the response.")
         
